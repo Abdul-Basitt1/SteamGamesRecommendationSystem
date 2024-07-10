@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Recommendation System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+        }
+        .graphs {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Game Recommendation System</h1>
+        <div class="form-group">
+            <label for="gameName">Game Name</label>
+            <input type="text" id="gameName" name="gameName">
+        </div>
+        <div class="form-group">
+            <label for="method">Recommendation Method</label>
+            <select id="method" name="method" onchange="clearRecommendations()">
+                <option value="by_game">By Similar Games</option>
+                <option value="by_description">By Description</option>
+            </select>
+        </div>
+        <button onclick="getRecommendations()">Get Recommendations</button>
+        <button onclick="showGraphs()">Show Graphs</button>
+        <div class="result" id="result"></div>
+        <div class="graphs" id="graphs"></div>
+    </div>
+
+    <script>
+        async function getRecommendations() {
+            const gameName = document.getElementById('gameName').value;
+            const method = document.getElementById('method').value;
+            const url = method === 'by_game' ? '/recommend_by_game' : '/recommend_by_description';
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ game_name: gameName })
+            });
+
+            if (response.ok) {
+                const recommendations = await response.json();
+                console.log("Received recommendations:", recommendations);
+
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = '<h2>Recommendations:</h2><ul>' + recommendations.map(rec => `<li>${rec[0] || rec}</li>`).join('') + '</ul>';
+            } else {
+                console.error('Failed to get recommendations:', response.statusText);
+                document.getElementById('result').innerHTML = '<p style="color: red;">Failed to get recommendations. Please try again later.</p>';
+            }
+        }
+
+        function clearRecommendations() {
+            document.getElementById('result').innerHTML = '';
+        }
+
+        async function showGraphs() {
+            const response = await fetch('/show_graphs');
+            if (response.ok) {
+                const graphHtml = await response.text();
+                document.getElementById('graphs').innerHTML = graphHtml;
+            } else {
+                console.error('Failed to load graphs:', response.statusText);
+                document.getElementById('graphs').innerHTML = '<p style="color: red;">Failed to load graphs. Please try again later.</p>';
+            }
+        }
+    </script>
+</body>
+</html>
